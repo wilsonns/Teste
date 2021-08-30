@@ -1,59 +1,9 @@
 import pygame as pg
 import random
-
-##MEU PROGRAMINHA PRA RODAR MAGO
-
-pg.init()
-
-rodando = True
-
-VERSAO = "v0.0.1"
-
-FPS = 12
-VELOCIDADE = 8
+import ai
 
 SPRITESIZE = 32
-SCREENSIZE = (25*SPRITESIZE,20*SPRITESIZE)
-TIPOSTERRENO = {"dummy":pg.image.load("Recursos/dummy.png"),
-                "Calçada":pg.image.load("Recursos/Calcada.png"),
-                "Chão Batido":pg.image.load("Recursos/Chão Batido.png")
-                }
-
-tela = pg.display.set_mode(SCREENSIZE)
-pg.display.set_caption("Mage Player"+ VERSAO)
-icone = pg.image.load("Recursos/dummy.png")
-pg.display.set_icon(icone)
-
-class Tile:
-    def __init__(self,x=0,y=0,sprite="dummy"):
-        self.x = x
-        self.y = y
-        self.sprite = TIPOSTERRENO[sprite]
-        self.entidade = None
-    def render(self,tela):
-        tela.blit(self.sprite,(self.x*SPRITESIZE,self.y*SPRITESIZE))
-
-class Mapa:
-    def __init__(self, largura, altura):
-        self.largura = largura
-        self.altura = altura
-        self.tiles = []
-        for x in range(self.largura):
-            for y in range(self.altura):
-                #r = random.randint(1,3)
-                r =1
-                str = None
-                if r == 1:
-                    str = "Calçada"
-                elif r == 2:
-                    str = "Chão Batido"
-                elif r == 3:
-                    str = "dummy"
-                self.tiles.append(Tile(x,y,str))
-
-    def render(self, tela):
-        for tile in self.tiles:
-            tile.render(tela)
+VELOCIDADE = 8
 
 class Spritesheet(pg.sprite.Sprite):
     def __init__(self,arquivo):
@@ -131,7 +81,8 @@ class Animacao:
     def iter(self):
         self.j = 0
 
-    def next(self):
+    def next(self,direcao):
+        self.direcao = direcao
         if self.j >= self.altura-1:
             self.j = 0
         else:
@@ -140,9 +91,11 @@ class Animacao:
         
 
 class Entidade:
-    def __init__(self, sprite):
-        self.x = 0
-        self.y = 0
+    def __init__(self,x,y, sprite, mapa):
+        self.nome = "Dummy"
+        self.x = x
+        self.y = y
+        self.AI = ai.AI(mapa,self)
         self.pixelX = self.x*SPRITESIZE
         self.pixelY = self.y*SPRITESIZE
         self.sprite = Animacao(sprite)
@@ -151,56 +104,46 @@ class Entidade:
         self.andando = False
         self.sprite.iter()
         #0 = baixo
-        #1 = esquerda
-        #2 = direita
+        #1 = direita
+        #2 = esquerda
         #3 = cima
 
     def render(self,tela):
-        self.andar()
         tela.blit(self.sprite.atual,(self.pixelX,self.pixelY))
 
 
-    def andar(self):
+    def mover(self,proximox,proximoy, mapa):
+        if proximoy > self.y:
+            self.direcao = 0
+        if proximox > self.x:
+            self.direcao = 1
+        if proximox < self.x:
+            self.direcao = 2
+        if proximoy < self.y:
+            self.direcao = 3
+
+        mapa.get_tile(self.x,self.y).entidade = None
+
         if self.direcao == 0:
             self.pixelY += VELOCIDADE
-            self.sprite.next()
+            self.sprite.next(self.direcao)
         elif self.direcao == 1:
-            self.pixelX -= VELOCIDADE
-            self.sprite.next()
-        elif self.direcao == 2:
             self.pixelX += VELOCIDADE
-            self.sprite.next()
+            self.sprite.next(self.direcao)
+        elif self.direcao == 2:
+            self.pixelX -= VELOCIDADE
+            self.sprite.next(self.direcao)
         elif self.direcao == 3:
             self.pixelY -= VELOCIDADE
-            self.sprite.next()
+            self.sprite.next(self.direcao)
 
-
-    def atualizar(self):
-        self.caminho
-
-mapa = Mapa(25,20)
-modelo = Entidade("Recursos/Personagem.png")
-modelo.x = 10
-modelo.y = 10
-
-modelo.caminho.append((11,10))
-
-ck = pg.time.Clock()
-first = True
-
-while rodando:
-
-    
-    tela.fill((255,255,255))
-
-    mapa.render(tela)
-
-    modelo.render(tela)
-  
-    pg.display.update()
-    ck.tick(FPS)
-    if first:
-        first = False
-        pg.time.wait(1000)
-
-pg.quit()
+        if self.pixelX%SPRITESIZE == 0:
+            self.x = int(self.pixelX/SPRITESIZE)
+        
+        if self.pixelY%SPRITESIZE == 0:
+            self.y = int(self.pixelY/SPRITESIZE)
+        
+        mapa.get_tile(self.x,self.y).entidade = self
+            
+    def atualizar(self,mapax):
+        self.AI.atualizar(mapax)

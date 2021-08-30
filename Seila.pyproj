@@ -4,7 +4,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>019cc90f-dc8a-48e4-addf-033d363d267e</ProjectGuid>
     <ProjectHome>.</ProjectHome>
-    <StartupFile>Seila.py</StartupFile>
+    <StartupFile>main.py</StartupFile>
     <SearchPath>
     </SearchPath>
     <WorkingDirectory>.</WorkingDirectory>
@@ -21,7 +21,16 @@
     <EnableUnmanagedDebugging>false</EnableUnmanagedDebugging>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Seila.py" />
+    <Compile Include="ai.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="entidade.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="mapa.py">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="main.py" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)\Python Tools\Microsoft.PythonTools.targets" />
   <!-- Uncomment the CoreCompile target to enable the Build command in
