@@ -1,14 +1,14 @@
 import pygame as pg
-from mapa import Mapa_Pathfinding, Nodo
+import mapa
 import entidade
 import math
 
 
 class AI:
-    def __init__(self, mapa, si:entidade.Entidade):
+    def __init__(self, mapa, si):
           self.mapa = mapa
           self.caminho = []
-          self.si = si
+          self.si = si#Um ponteiro à entidade que representa essa AI
      
     def mover(self, dx:int, dy:int,mapax):
         if self.mapa.nodos[dx+(dy*self.mapa.largura)].obstaculo == False:
@@ -24,7 +24,20 @@ class AI:
             if self.si.x == proximo.x and self.si.y == proximo.y:
                 self.caminho.pop(0)
 
-    def acharCaminho(self, inicio:Nodo, objetivo:Nodo,tela):
+    def acharCaminho(self, inicio, objetivo,tela):
+        
+        # Loop do Pathfinding:
+        # 1. reseta todos os nodos, limpa as listas aberta e fechada
+        # 2. insere o nodo inicial na lista aberta e define ele como atual
+        # 3. Inicia o loop:processa o nodo atual , tirando-o da lista aberta e colocando na lista fechada. 
+        # Todos os vizinhos do nodo inicial são inseridos na lista aberta
+        # 4. Reorganize a lista aberta de forma crescente baseado na variavel F; O nodo com o menor F agora é o atual;
+        # 5. Repita o passo 3 até que a lista aberta fique vazia(significa que o caminho não foi encontrado) 
+        # OU até que o nodo atual seja == ao nodo objetivo
+        # 6. Se o objetivo for encontrado, trace o caminho de volta através do nodo pai do objetivo, 
+        # repetindo isso até formar o caminho do inicio ao objetivo
+        # 7. Retorne um vetor revertido com os nodos que compoem o caminho
+
         aberta = []
         aberta.append(inicio)
         fechada = []
@@ -47,13 +60,7 @@ class AI:
                     caminho.reverse()
                     caminho.pop(0)
                     self.caminho = caminho
-
-                    #caminhoreverso = caminho
-                    #caminhoreverso.reverse()
-                    #for nodo in caminhoreverso:
-                            #pg.draw.line(tela,(0,0,255),((nodo.x*32)+16,(nodo.y*32)+16),((nodo.pai.x*32)+16,(nodo.pai.y*32)+16),2)
-                            #pg.display.flip()
-                            
+                                                
                     for y in range(self.mapa.altura):
                         for x in range(self.mapa.largura):
                             tile = self.mapa.nodos[x+(y*self.mapa.largura)]
@@ -92,18 +99,18 @@ class AI:
 
         return False               
                
-    def calcularG(self,nodo:Nodo):
+    def calcularG(self,nodo):
         if nodo.x != nodo.pai.x and nodo.y != nodo.pai.y:
             return nodo.pai.g+14
         else:
             return nodo.pai.g +10
           
-    def calcularH(self, atual:Nodo,objetivo:Nodo):
+    def calcularH(self, atual,objetivo):
         dx = atual.x - objetivo.x
         dy = atual.y - objetivo.y
         distancia = int(math.sqrt((dx*dx)+(dy*dy)))
         return distancia*10
      
-    def calcularF(self, nodo:Nodo):
+    def calcularF(self, nodo):
         return nodo.g+nodo.h
 

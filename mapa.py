@@ -1,10 +1,14 @@
 import pygame as pg
+from sprite import Animacao, SPRITESIZE, VELOCIDADE
+import entidade
 
-TIPOSTERRENO = {"dummy":pg.image.load("Recursos/dummy.png"),
-                "Calçada":pg.image.load("Recursos/Calcada.png"),
-                "Chão Batido":pg.image.load("Recursos/Chão Batido.png"),
-                "Parede":pg.image.load("Recursos/Parede.png")
-                }
+TIPOSTERRENO = {}
+
+def adcionar_terreno(sprite):
+    arquivo = "Recursos/" + sprite + ".png"
+    tile = Animacao(arquivo,1)
+    TIPOSTERRENO[sprite] = tile
+
 
 class Tile:
     def __init__(self,x=0,y=0,sprite="dummy"):
@@ -12,16 +16,13 @@ class Tile:
         self.x = x 
         self.y = y
         self.sprite = TIPOSTERRENO[sprite]
-        self.entidade = None
-
-    def __getitem__(self,key):
-        pass
+        self.entidade = None #Ponteiro pra entidade que está ocupando o tile
 
     def set_sprite(self,sprite="dummy"):
         self.sprite = TIPOSTERRENO[sprite]
 
     def render(self,tela,SPRITESIZE = 32):
-        tela.blit(self.sprite,(self.x*SPRITESIZE,self.y*SPRITESIZE))
+        tela.blit(self.sprite.atual,(self.x*SPRITESIZE,self.y*SPRITESIZE))
 
 class Nodo(object):
     def __init__(self, x, y, obstaculo = False):
@@ -41,6 +42,7 @@ class Nodo(object):
             return True
         else:
             return False
+        #Compara nodos pela Posição
 
     def definirVizinhos(self, mapa):
         for x in range(self.x-1,self.x+2):
@@ -50,10 +52,12 @@ class Nodo(object):
                     self.vizinhos.append(nodo)
 
 class Mapa(object):
-    def __init__(self, largura, altura):
+    def __init__(self, largura, altura, path):
         self.largura = largura
         self.altura = altura
         self.tiles = []
+        self.entidades = []
+        self.path = path
         
         for y in range(self.altura):
             for x in range(self.largura):
@@ -67,6 +71,10 @@ class Mapa(object):
                 elif r == 3:
                     str = "dummy"
                 self.tiles.append(Tile(x,y,str))
+
+    def criar_entidade(self,x,y,nome,sprite,template,atributos,habilidades):
+        ent = entidade.Entidade(x,y,nome,sprite,self.path,template,atributos,habilidades)
+        self.entidades.append(ent)
 
     def get_tile(self,x,y):
         return self.tiles[x+(y*self.largura)]
